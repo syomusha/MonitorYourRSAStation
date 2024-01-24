@@ -5,12 +5,12 @@ document.addEventListener('DOMContentLoaded', function () {
     var resultElement = document.getElementById('result');
     if (resultElement) {
       resultElement.textContent = message;
-
-      // Send a message to background.js to write the result to a file
-      chrome.runtime.sendMessage({ action: 'writeToFile', message: message });
+    }
+    else {
+      console.error(chrome.runtime.lastError)
     }
   }
-
+  
   // Function to click a specific element within a button with a specific XPath after the page has loaded
   function clickElementByXPath(xpath) {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function () {
           var element = document.evaluate('${xpath}', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
           if (element) { 
             element.click();
-            console.log('Element Clicked within Button!');
+            // console.log('Element Clicked within Button!');
           } else {
             console.log('Element not found');
           }
@@ -134,6 +134,31 @@ document.addEventListener('DOMContentLoaded', function () {
       }, 1000);
       firstTime = false;
     }
+  }
+
+  function sendEmail(to, subject, body) {
+    const message = `To: ${to}\r\nSubject: ${subject}\r\n\r\n${body}`;
+    const encodedMessage = btoa(message).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    
+    chrome.identity.getAuthToken({ 'interactive': true }, function(token) {
+      if (chrome.runtime.lastError) {
+        console.error(chrome.runtime.lastError);
+        return;
+      }
+      fetch('https://www.googleapis.com/gmail/v1/users/me/messages/send', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          raw: encodedMessage
+        })
+      })
+      .then(response => response.json())
+      .then(data => console.log(data))
+      .catch(error => console.error(error));
+    });
   }
 
   // Start the main loop

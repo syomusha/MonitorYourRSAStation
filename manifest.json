@@ -1,9 +1,9 @@
 {
   "manifest_version": 2,
-  "name": "Auto Refresh Extension",
+  "name": "MonitorYourRSAStation",
   "version": "1.0",
-  "description": "A simple extension to automatically refresh the browser and check a button's value.",
-  "permissions": ["activeTab", "storage"],
+  "description": "An extension that monitors your RSA center for driving tests",
+  "permissions": ["activeTab", "storage", "tabs", "identity"],
   "browser_action": {
     "default_icon": "icon.png",
     "default_popup": "popup.html"
@@ -11,14 +11,14 @@
   "icons": {
     "48": "icon.png"
   },
-  "background": {
-    "scripts": ["background.js"],
-    "persistent": false
-  },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
       "js": ["content.js"]
     }
-  ]
+  ],
+  "oauth2": {
+    "client_id": "//add your id",
+    "scopes": ["https://www.googleapis.com/auth/gmail.send"]
+  }
 }
