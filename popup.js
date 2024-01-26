@@ -1,16 +1,15 @@
 document.addEventListener('DOMContentLoaded', function () {
+  console.log("DOMContentLoaded");
 
-  // Updated function to include file writing
+  // Function to update the result in the popup
   function updateResult(message) {
     var resultElement = document.getElementById('result');
     if (resultElement) {
       resultElement.textContent = message;
-    }
-    else {
-      console.error(chrome.runtime.lastError)
+    } else {
+      console.error(chrome.runtime.lastError);
     }
   }
-  
   // Function to click a specific element within a button with a specific XPath after the page has loaded
   function clickElementByXPath(xpath) {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
@@ -19,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function () {
           var element = document.evaluate('${xpath}', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
           if (element) { 
             element.click();
-            // console.log('Element Clicked within Button!');
+            console.log('Element clicked successfully');
           } else {
             console.log('Element not found');
           }
@@ -54,6 +53,7 @@ document.addEventListener('DOMContentLoaded', function () {
     setTimeout(() => {
       chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         chrome.tabs.reload(tabs[0].id);
+        console.log('Page refreshed successfully');
       });
     }, delay);
   }
@@ -79,9 +79,59 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  let firstTime = true;
+  sendEmail("Test Subject", "This is a test email body.");
+  // Function to send an email using Gmail API
+  function sendEmail(subject, body) {
+    getAuthToken(function (token) {
+      console.log("Sending email with token:", token);
 
-  // Main loop function
+      fetch("https://www.googleapis.com/gmail/v1/users/me/messages/send", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer " + token,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          raw: btoa("From: andrewsyomush@gmail.com\r\nTo: andrewsyomush@gmail.com\r\nSubject: " + subject + "\r\n\r\n" + body)
+        })
+      })
+        .then(response => {
+          console.log("Response status:", response.status);
+          if (!response.ok) {
+            throw new Error("Error sending email: " + response.statusText);
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log("Email sent successfully:", data);
+        })
+        .catch(error => {
+          console.error("Error sending email:", error.message);
+        });
+    });
+  }
+
+  // Function to get the OAuth token
+  function getAuthToken(callback) {
+    chrome.identity.getAuthToken({ interactive: true }, function (token) {
+      if (!token) {
+        console.error("Error: Unable to get authorization token.");
+        return;
+      }
+
+      console.log("Token obtained:", token);
+      callback(token);
+    });
+  }
+  
+  document.getElementById('sendEmailButton').addEventListener('click', function () {
+    // Call the function to send a test email
+    sendEmail("Test Subject", "This is a test email body.");
+  });
+  
+
+
+  firstTime = true
   function mainLoop() {
     if (!firstTime) {
       // Wait until the browser is fully loaded
@@ -97,14 +147,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Wait for one second and then get the value of the specified element along with the current time
         getValueByXPathAfterDelay('//*[@class="float-right text-primary text-right ng-star-inserted"]', 1000, function (result) {
-          // Update the extension popup with the retrieved value and current time
           var currentTime = getCurrentTime();
-          updateResult(`Time: ${currentTime}, Value: ${result || 'Value not found'}`);
-
-          // Check if the value is found and initiate a refresh after 30 seconds
-          if (result) {
-            refreshPageAfterDelay(30000);
-          }
+          // Availability found, update the extension popup
+          updateResult(`Time: ${currentTime}, Value: ${result}`);
+          refreshPageAfterDelay(30000);  // Refresh after 30 seconds
 
           // Call the main loop again after a delay
           setTimeout(mainLoop, 30000);
@@ -119,14 +165,11 @@ document.addEventListener('DOMContentLoaded', function () {
       setTimeout(function () {
         // Get the value of the specified element along with the current time
         getValueByXPathAfterDelay('//*[@class="float-right text-primary text-right ng-star-inserted"]', 0, function (result) {
-          // Update the extension popup with the retrieved value and current time
           var currentTime = getCurrentTime();
-          updateResult(`Time: ${currentTime}, Value: ${result || 'Value not found'}`);
 
-          // Check if the value is found and initiate a refresh after 30 seconds
-          if (result) {
-            refreshPageAfterDelay(30000);
-          }
+          // Availability found, update the extension popup
+          updateResult(`Time: ${currentTime}, Value: ${result}`);
+          refreshPageAfterDelay(30000);  // Refresh after 30 seconds
 
           // Call the main loop again after a delay
           setTimeout(mainLoop, 30000);
@@ -134,31 +177,6 @@ document.addEventListener('DOMContentLoaded', function () {
       }, 1000);
       firstTime = false;
     }
-  }
-
-  function sendEmail(to, subject, body) {
-    const message = `To: ${to}\r\nSubject: ${subject}\r\n\r\n${body}`;
-    const encodedMessage = btoa(message).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-    
-    chrome.identity.getAuthToken({ 'interactive': true }, function(token) {
-      if (chrome.runtime.lastError) {
-        console.error(chrome.runtime.lastError);
-        return;
-      }
-      fetch('https://www.googleapis.com/gmail/v1/users/me/messages/send', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          raw: encodedMessage
-        })
-      })
-      .then(response => response.json())
-      .then(data => console.log(data))
-      .catch(error => console.error(error));
-    });
   }
 
   // Start the main loop
