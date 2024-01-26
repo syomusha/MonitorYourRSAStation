@@ -21,7 +21,7 @@
     }
   ],
   "oauth2": {
-    "client_id": "152033875231-1s0csf70ot8nm99v3f6pvktoh1frhvu6.apps.googleusercontent.com",
+    "client_id": "",
     "scopes": ["https://www.googleapis.com/auth/gmail.send"]
   },
   "content_security_policy": "script-src 'self' https://apis.google.com; object-src 'self';",
