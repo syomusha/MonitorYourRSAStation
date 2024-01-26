@@ -3,19 +3,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Function to update the result in the popup
   function updateResultAndSendMail(message) {
-    var resultElement = document.getElementById('result');
-    if (resultElement) {
-      resultElement.textContent = message;
-      var availability = message.substring(23);
-      if(availability != "No availability" && availability != "null")
-      {
-        sendEmail(message, "test available on " + availability)
+    try {
+      var resultElement = document.getElementById('result');
+      if (resultElement) {
+        if (message != null && message != undefined) {
+          resultElement.textContent = message;
+          var availability = message.substring(23);
+          if(availability != "No availability" && availability != "null")
+          {
+            sendEmail(message, "test available on " + availability)
+          }
+          else{
+            console.log(message)
+          }
+        } else {
+          console.error(chrome.runtime.lastError);
+        }
+      } else {
+        console.error("Error: resultElement not found");
       }
-      else{
-        console.log(message)
-      }
-    } else {
-      console.error(chrome.runtime.lastError);
+    } catch (error) {
+      console.error("Unexpected error:", error);
     }
   }
   // Function to click a specific element within a button with a specific XPath after the page has loaded
@@ -41,11 +49,15 @@ document.addEventListener('DOMContentLoaded', function () {
       chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         chrome.tabs.executeScript({
           code: `
-            var element = document.evaluate('${xpath}', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-            if (element) { 
-              var value = element.textContent.trim();
-              value;
-            } else {
+            try {
+              var element = document.evaluate('${xpath}', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+              if (element) {
+                var value = element.textContent.trim();
+                value;
+              } else {
+                null;
+              }
+            } catch (error) {
               null;
             }
           `
@@ -55,6 +67,7 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     }, delay);
   }
+
 
   // Function to refresh the page after a delay
   function refreshPageAfterDelay(delay) {
