@@ -1,8 +1,9 @@
+let quit = false;
 document.addEventListener('DOMContentLoaded', function () {
   console.log("DOMContentLoaded");
 
   // Function to update the result in the popup
-  function updateResultAndSendMail(message) {
+  function updateResultAndSendEmail(message) {
     try {
       var resultElement = document.getElementById('result');
       if (resultElement) {
@@ -11,7 +12,8 @@ document.addEventListener('DOMContentLoaded', function () {
           var availability = message.substring(23);
           if(availability != "No availability" && availability != "null")
           {
-            sendEmail(message, "test available on " + availability)
+            sendEmail("Your default station is now available", "Be quick!\n"+ message)
+            quit = true;
           }
           else{
             console.log(message)
@@ -26,6 +28,7 @@ document.addEventListener('DOMContentLoaded', function () {
       console.error("Unexpected error:", error);
     }
   }
+
   // Function to click a specific element within a button with a specific XPath after the page has loaded
   function clickElementByXPath(xpath) {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
@@ -70,14 +73,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
   // Function to refresh the page after a delay
-  function refreshPageAfterDelay(delay) {
-    setTimeout(() => {
-      chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-        chrome.tabs.reload(tabs[0].id);
-        console.log('Page refreshed successfully');
-      });
-    }, delay);
+  function refreshPage() {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      chrome.tabs.reload(tabs[0].id);
+      console.log('Page refreshed successfully');
+    });
   }
+
 
   // Function to get the current time in HH:mm:ss format
   function getCurrentTime() {
@@ -100,7 +102,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // sendEmail("Test Subject", "This is a test email body.");
   // Function to send an email using Gmail API
   function sendEmail(subject, body) {
     getAuthToken(function (token) {
@@ -149,62 +150,33 @@ document.addEventListener('DOMContentLoaded', function () {
     // Call the function to send a test email
     sendEmail("Test email", "This is a test email body. You're all set up!");
   });
-  
 
-
-  firstTime = true
   function mainLoop() {
-    if (!firstTime) {
-      // Wait until the browser is fully loaded
-      isBrowserLoaded(function (loaded) {
-        if (!loaded) {
-          // If not loaded, wait and check again
-          setTimeout(mainLoop, 10000);
-          return;
-        }
-
-        // Call the function when the extension popup is opened
-        clickElementByXPath('//*[@id="button3"]/span[1]/div/div[2]');
-
-        // Wait for a short delay before getting the value of the specified element
-        setTimeout(function () {
-          // Get the value of the specified element along with the current time
-          getValueByXPathAfterDelay('//*[@class="float-right text-primary text-right ng-star-inserted"]', 1000, function (result) {
-            var currentTime = getCurrentTime();
-
-            // Availability found, update the extension popup
-            updateResultAndSendMail(`Time: ${currentTime}, Value: ${result}`);
-            refreshPageAfterDelay(30000);  // Refresh after 30 seconds
-
-            // Call the main loop again after a delay
-            setTimeout(mainLoop, 30000);
-          });
-        }, 2000); // Adjust this delay as needed
-        firstTime = false;
-      });
-    } else {
-      // Call the function when the extension popup is opened
-      clickElementByXPath('//*[@id="button3"]/span[1]/div/div[2]');
-
-      // Wait for one second before getting the value of the specified element
-      setTimeout(function () {
-        // Get the value of the specified element along with the current time
-        getValueByXPathAfterDelay('//*[@class="float-right text-primary text-right ng-star-inserted"]', 0, function (result) {
-          var currentTime = getCurrentTime();
-
-          // Availability found, update the extension popup
-          updateResultAndSendMail(`Time: ${currentTime}, Value: ${result}`);
-          refreshPageAfterDelay(30000);  // Refresh after 30 seconds
-
-          // Call the main loop again after a delay
-          setTimeout(mainLoop, 30000);
-        });
-      }, 1000);
-      firstTime = false;
+    if (quit) {
+      console.log("Gracefully stopping the program.");
+      return;
     }
-  }
-
+    
+    // Wait until the browser is fully loaded
+    isBrowserLoaded(function (loaded) {
+      if (!loaded) {
+        // If not loaded, wait and check again
+        setTimeout(isBrowserLoaded, 1000);
+        return;
+      }
+      // Call the function when the extension popup is opened
+      clickElementByXPath('//*[@id="button3"]/span[1]/div/div[2]');   
+      // Get the value of the specified element along with the current time
+      getValueByXPathAfterDelay('//*[@id="mat-menu-panel-0"]/div/button[3]/div[1]/div[3]/span[2]', 2000, function (result) {
+      var currentTime = getCurrentTime();
+      // Availability found, update the extension popup
+      updateResultAndSendEmail(`Time: ${currentTime}, Value: ${result}`);
+      refreshPage()
+      });
+      setTimeout(mainLoop, 10000);
+    });
+}
+  
   // Start the main loop
   mainLoop();
-  console.log("done");
 });
