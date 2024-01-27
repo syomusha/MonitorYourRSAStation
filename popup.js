@@ -1,33 +1,57 @@
 let quit = false;
+let emailAddress; // Declare emailAddress outside the event listeners
+
 document.addEventListener('DOMContentLoaded', function () {
   console.log("DOMContentLoaded");
 
-  // Function to update the result in the popup
-  function updateResultAndSendEmail(message) {
-    try {
-      var resultElement = document.getElementById('result');
-      if (resultElement) {
-        if (message != null && message != undefined) {
-          resultElement.textContent = message;
-          var availability = message.substring(23);
-          if(availability != "No availability" && availability != "null")
-          {
-            sendEmail("Your default station is now available", "Be quick!\n"+ message)
-            quit = true;
-          }
-          else{
-            console.log(message)
-          }
-        } else {
-          console.error(chrome.runtime.lastError);
-        }
+
+  // Add event listener for the email input box
+  document.getElementById('emailInput').addEventListener('change', function () {
+      // Get the entered email address
+      emailAddress = document.getElementById('emailInput').value.trim();
+
+      // Check if the entered email is valid
+      if (isValidEmail(emailAddress)) {
+          // Start the main loop with the entered email
+          mainLoop(emailAddress); // starts mainloop
       } else {
-        console.error("Error: resultElement not found");
+          console.error("Invalid email address");
+          // Provide feedback to the user about the invalid email address
       }
-    } catch (error) {
-      console.error("Unexpected error:", error);
-    }
+  });
+
+  function isValidEmail(email) {
+    // You can implement a more robust email validation if needed
+    var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
   }
+
+
+  // Function to update the result in the popup
+  function updateResultAndSendEmail(message, emailAddress) {
+      try {
+          var resultElement = document.getElementById('result');
+          if (resultElement) {
+              if (message != null && message != undefined) {
+                  resultElement.textContent = message;
+                  var availability = message.substring(23);
+                  if (availability != "No availability" && availability != "null") {
+                      sendEmail("Your default station is now available", "Be quick!\n" + message);
+                      quit = true;
+                  } else {
+                      console.log(message);
+                  }
+              } else {
+                  console.error(chrome.runtime.lastError);
+              }
+          } else {
+              console.error("Error: resultElement not found");
+          }
+      } catch (error) {
+          console.error("Unexpected error:", error);
+      }
+  }
+
 
   // Function to click a specific element within a button with a specific XPath after the page has loaded
   function clickElementByXPath(xpath) {
@@ -114,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function () {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          raw: btoa("From: andrewsyomush@gmail.com\r\nTo: andrewsyomush@gmail.com\r\nSubject: " + subject + "\r\n\r\n" + body)
+          raw: btoa(`From: andrewsyomush@gmail.com\r\nTo: ${emailAddress}\r\nSubject: ${subject}\r\n\r\n${body}`)
         })
       })
         .then(response => {
@@ -147,11 +171,22 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   
   document.getElementById('sendEmailButton').addEventListener('click', function () {
-    // Call the function to send a test email
-    sendEmail("Test email", "This is a test email body. You're all set up!");
-  });
+      // Get the entered email address
+      var emailAddress = document.getElementById('emailInput').value.trim();
 
-  function mainLoop() {
+      // Check if the entered email is valid
+      if (isValidEmail(emailAddress)) {
+          // Call the function to send a test email with the entered email address
+          sendEmail(emailAddress, "You're all set up! You'll receive an email as soon as theres a spot opened up :)");
+      } else {
+          console.error("Invalid email address");
+          // Provide feedback to the user about the invalid email address
+      }
+  });
+    
+
+
+  function mainLoop(emailAddress) {
     if (quit) {
       console.log("Gracefully stopping the program.");
       return;
@@ -173,10 +208,12 @@ document.addEventListener('DOMContentLoaded', function () {
       updateResultAndSendEmail(`Time: ${currentTime}, Value: ${result}`);
       refreshPage()
       });
-      setTimeout(mainLoop, 10000);
+      setTimeout(function () {
+        mainLoop(emailAddress);
+        }, 10000);
     });
 }
   
   // Start the main loop
-  mainLoop();
+  // mainLoop(emailAddress);
 });
