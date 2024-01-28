@@ -10,24 +10,35 @@ MonitorYourRSAStation is a Chrome extension designed to monitor RSA (Road Safety
 
 ## Getting Started
 
-Follow these steps to get started with the MonitorYourRSAStation extension:
+Follow this video or the steps steps below to get started with the MonitorYourRSAStation extension:
+
+[![VIDEO WALKTHROUGH]](https://www.youtube.com/watch?v=yBA5moe7zkw&ab_channel=AndrewSyomushkin.)
 
 1. **Installation:**
 
-   - Download the extension files.
+   - Download the repo files.
    - Open Chrome and navigate to `chrome://extensions/`.
    - Enable "Developer mode" in the top right corner.
    - Click "Load unpacked" and select the folder containing the extension files.
 
-2. **Sign into your RSA account**
+2. **Go to google https://console.cloud.google.com/**
+
+   - Create a browser extension.
+   - In manifest.json, edit the "client_id" from your google console browser extension.
+   - On line 146 of popup.js, change my email to your google cloud console's email.
+   - Enter the browser extension id from your extension tab to the extension id tab inside google cloud console tab, click save.
+
+3. **Sign into your RSA account**
 
    - Navigate to the booking portal, ie https://myroadsafety.rsa.ie/portal/booking/e5bbe47a-3f94-e911-a2be-0050568fd8e0/d2dc5f8c-2506-ea11-a2c3-0050568fd8e0
 
-3. **Run the Extension:**
+4. **Run the Extension:**
+   - If your default test site is not the third row on the dropdown menu, change the XPATH thats passed into the getValueByXPathAfterDelay('**YOUR COLMN**') function.
    - Click on the extension icon in the Chrome toolbar to open the popup.
    - Enter your email address and click the "Send Test Email" button to verify email functionality.
    - Ensure this email is received!
-4. **Monitor Test Center:**
+     
+5. **Monitor Test Center:**
    - The extension will automatically monitor the specified RSA test center for booking availability.
    - The extension will refresh every ~10 seconds and check availability.
    - When a booking becomes available, an email notification will be sent to the email specified.
@@ -39,8 +50,6 @@ Follow these steps to get started with the MonitorYourRSAStation extension:
 - **popup.html:** The HTML file for the extension popup, where the user can input their email and initiate a test email.
 
 - **manifest.json:** Configuration file for the extension, specifying permissions, icons, and other settings.
-
-- **index.html:** A simple HTML file that seems unused. Consider removing if unnecessary.
 
 ## Permissions
 
