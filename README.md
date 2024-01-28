@@ -12,7 +12,7 @@ MonitorYourRSAStation is a Chrome extension designed to monitor RSA (Road Safety
 
 Follow this video or the steps steps below to get started with the MonitorYourRSAStation extension:
 
-[![VIDEO WALKTHROUGH]](https://www.youtube.com/watch?v=yBA5moe7zkw&ab_channel=AndrewSyomushkin.)
+[![VIDEO WALKTHROUGH](https://i.ytimg.com/vi/yBA5moe7zkw/hqdefault.jpg?sqp=-oaymwEcCPYBEIoBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLAvewPc9bS0IlBA3y1Yqmbe18P1Dg)](https://www.youtube.com/watch?v=yBA5moe7zkw&ab_channel=AndrewSyomushkin.)
 
 1. **Installation:**
 
